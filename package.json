@@ -1,0 +1,30 @@
+{
+  "name": "websec-sql-injection-lab",
+  "version": "1.0.0",
+  "description": "Educational Express and SQLite security lab: SQL injection demonstration and protection with parameterized queries.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js && node --check src/app.js && node --check tests/sql-injection.test.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "sqlite",
+    "sql-injection",
+    "web-security",
+    "appsec",
+    "owasp",
+    "validation"
+  ],
+  "author": "Nicole Zhurbenko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,88 @@
+openapi: 3.0.3
+info:
+  title: WebSec SQL Injection Lab
+  version: 1.0.0
+  description: Educational Express and SQLite security lab demonstrating SQL injection and protection with parameterized queries.
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is available
+  /search/vulnerable:
+    get:
+      summary: Vulnerable user search
+      description: Intentionally vulnerable endpoint that concatenates user input into an SQL query.
+      parameters:
+        - in: query
+          name: username
+          required: true
+          schema:
+            type: string
+          example: admin
+      responses:
+        '200':
+          description: Search result with executed SQL and users
+        '400':
+          description: SQL query could not be executed
+  /search/secure:
+    get:
+      summary: Secure user search
+      description: Protected endpoint using input validation and parameterized SQL query.
+      parameters:
+        - in: query
+          name: username
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9_]+$'
+            maxLength: 30
+          example: admin
+      responses:
+        '200':
+          description: Public user search result
+        '400':
+          description: Invalid username query parameter
+  /security-events:
+    get:
+      summary: Security events log
+      description: Returns recent in-memory search attempts and suspicious query signals.
+      responses:
+        '200':
+          description: Security events list
+components:
+  schemas:
+    PublicUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: admin
+        email:
+          type: string
+          example: admin@example.com
+        isAdmin:
+          type: integer
+          example: 1
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid username query parameter.
+            details:
+              type: array
+              items:
+                type: string

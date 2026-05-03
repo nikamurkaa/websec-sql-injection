@@ -1,0 +1,107 @@
+{
+  "info": {
+    "name": "WebSec SQL Injection Lab",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Vulnerable search - normal username",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/search/vulnerable?username=admin",
+          "host": ["{{baseUrl}}"],
+          "path": ["search", "vulnerable"],
+          "query": [
+            {
+              "key": "username",
+              "value": "admin"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Vulnerable search - OR 1=1 SQL injection",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/search/vulnerable?username=' OR 1=1 --",
+          "host": ["{{baseUrl}}"],
+          "path": ["search", "vulnerable"],
+          "query": [
+            {
+              "key": "username",
+              "value": "' OR 1=1 --"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Vulnerable search - UNION data exposure",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/search/vulnerable?username=' UNION SELECT id, username, password, is_admin FROM users --",
+          "host": ["{{baseUrl}}"],
+          "path": ["search", "vulnerable"],
+          "query": [
+            {
+              "key": "username",
+              "value": "' UNION SELECT id, username, password, is_admin FROM users --"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Secure search - normal username",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/search/secure?username=admin",
+          "host": ["{{baseUrl}}"],
+          "path": ["search", "secure"],
+          "query": [
+            {
+              "key": "username",
+              "value": "admin"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Secure search - blocked SQL injection",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/search/secure?username=' OR 1=1 --",
+          "host": ["{{baseUrl}}"],
+          "path": ["search", "secure"],
+          "query": [
+            {
+              "key": "username",
+              "value": "' OR 1=1 --"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Security events",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/security-events"
+      }
+    }
+  ]
+}
