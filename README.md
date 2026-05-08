@@ -83,7 +83,7 @@ websec-sql-injection-lab/
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone https://github.com/kindarufy/websec-sql-injection-lab.git
+git clone https://github.com/kindarufy/websec-sql-injection.git
 cd websec-sql-injection-lab
 ```
 
@@ -128,7 +128,7 @@ GET /health
 ```json
 {
   "status": "ok",
-  "service": "websec-sql-injection-lab"
+  "service": "websec-sql-injection"
 }
 ```
 
