@@ -120,7 +120,7 @@ Postman: [`postman/`](postman/).
 
 ## Статус
 
-Проект завершён и используется как portfolio lab по **SQL Injection, secure query construction и API hardening**.
+Проект завершён как учебный lab по **SQL Injection, secure query construction и API hardening**.
 
 ## Автор
 
