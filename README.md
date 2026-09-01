@@ -1,35 +1,27 @@
 # WebSec SQL Injection
 
-Учебный backend-проект по безопасности веб-приложений: небольшое приложение на **Node.js + Express + SQLite**, которое показывает SQL Injection и способы защиты от неё.
+**WebSec SQL Injection** — учебный backend security lab на **Node.js + Express + SQLite**, который показывает SQL Injection и безопасный вариант реализации того же API-сценария.
 
-Проект содержит два варианта поиска пользователей:
+В проекте намеренно существуют два endpoint'а:
 
-- уязвимый endpoint, где SQL-запрос собирается через конкатенацию строк;
-- защищённый endpoint, где используются параметризованные запросы, валидация входных данных и фильтрация ответа.
+- **vulnerable** — SQL-запрос собирается конкатенацией строк;
+- **secure** — используются parameterized query, allowlist-валидация и фильтрация ответа.
 
-> Проект является учебным security lab и предназначен для портфолио. Это не production-ready приложение и не инструкция для атаки на реальные системы.
+> Уязвимый endpoint существует исключительно для локального обучения и тестирования. Проект не является инструкцией по атаке реальных систем.
 
 ## Что демонстрирует проект
 
-В проекте реализованы:
-
-- REST API на Express;
-- SQLite database in memory;
-- разделение приложения на `app`, `server`, `routes`, `middleware`, `services`, `data`, `utils`;
-- уязвимый поиск пользователей через string concatenation;
-- демонстрация SQL Injection через `OR 1=1`;
-- демонстрация UNION-based data exposure;
-- защищённый поиск через parameterized query;
-- allowlist-валидация `username`;
-- фильтрация ответа: API не отдаёт поле `password` в защищённом endpoint;
-- логирование подозрительных поисковых запросов;
+- SQL Injection через небезопасную string concatenation;
+- сценарий `OR 1=1` в изолированном demo API;
+- UNION-based data exposure в учебной базе;
+- parameterized queries как основную защиту;
+- allowlist-валидацию пользовательского ввода;
+- исключение поля `password` из безопасного API-ответа;
+- логирование подозрительных search events;
 - единый JSON-формат ошибок;
-- OpenAPI-спецификация;
-- Postman-коллекция;
-- автотесты на встроенном `node:test`;
-- GitHub Actions CI.
+- OpenAPI, Postman, automated tests и GitHub Actions CI.
 
-## Стек технологий
+## Стек
 
 - Node.js
 - Express
@@ -40,288 +32,96 @@
 - Postman
 - GitHub Actions
 
-## Структура проекта
+## Структура
 
 ```text
-websec-sql-injection-lab/
+websec-sql-injection/
 ├── src/
-│   ├── app.js
-│   ├── server.js
-│   ├── data/
-│   │   ├── database.js
-│   │   └── security-log.js
-│   ├── middleware/
-│   │   └── errors.js
 │   ├── routes/
-│   │   ├── search.js
-│   │   └── security-events.js
+│   ├── middleware/
 │   ├── services/
-│   │   └── users.js
+│   ├── data/
 │   └── utils/
-│       └── sql-signals.js
 ├── tests/
-│   └── sql-injection.test.js
 ├── docs/
-│   ├── manual-checks.md
-│   ├── openapi.yaml
-│   ├── security-model.md
-│   └── test-plan.md
 ├── postman/
-│   ├── websec-sql-injection-lab.postman_collection.json
-│   └── websec-sql-injection-lab.local.postman_environment.json
 ├── .github/workflows/ci.yml
 ├── .env.example
-├── .editorconfig
-├── .gitignore
-├── LICENSE
 ├── package.json
 └── README.md
 ```
 
-## Установка и запуск
-
-### 1. Клонировать репозиторий
+## Локальный запуск
 
 ```bash
-git clone https://github.com/kindarufy/websec-sql-injection.git
-cd websec-sql-injection-lab
-```
-
-### 2. Установить зависимости
-
-```bash
+git clone https://github.com/nikamurkaa/websec-sql-injection.git
+cd websec-sql-injection
 npm install
-```
-
-### 3. Запустить приложение
-
-```bash
 npm start
 ```
 
-По умолчанию API будет доступно по адресу:
+API по умолчанию:
 
 ```text
 http://localhost:3000
 ```
 
-## Переменные окружения
+## Endpoint'ы
 
-Пример переменных находится в файле `.env.example`:
+| Метод | Endpoint | Назначение |
+| --- | --- | --- |
+| `GET` | `/health` | Health check |
+| `GET` | `/search/vulnerable?username=...` | Намеренно уязвимый поиск |
+| `GET` | `/search/secure?username=...` | Защищённый поиск |
+| `GET` | `/security-events` | Журнал поисковых/security events |
 
-```env
-PORT=3000
+## Уязвимый и защищённый подход
+
+Небезопасная идея:
+
+```text
+SELECT ... WHERE username = '<user input>'
 ```
 
-Если переменная окружения не задана, приложение использует порт `3000`.
+когда `<user input>` добавляется в SQL через конкатенацию.
 
-## API endpoints
+Защищённый endpoint использует параметризованный запрос и передаёт пользовательское значение отдельно от SQL-шаблона. Дополнительно применяется allowlist-валидация и response filtering.
 
-### Health check
+| Риск | Защита secure endpoint |
+| --- | --- |
+| SQL Injection | parameterized query |
+| Неконтролируемый ввод | allowlist username validation |
+| Sensitive data exposure | поле password не возвращается |
+| Подозрительная активность | security event logging |
 
-```http
-GET /health
-```
+Подробнее: [`docs/security-model.md`](docs/security-model.md).
 
-Пример ответа:
+## Локальная демонстрация
 
-```json
-{
-  "status": "ok",
-  "service": "websec-sql-injection"
-}
-```
-
-### Уязвимый поиск пользователей
-
-```http
-GET /search/vulnerable?username=admin
-```
-
-Пример ответа:
-
-```json
-{
-  "mode": "vulnerable",
-  "warning": "This endpoint intentionally uses string concatenation and is vulnerable to SQL injection.",
-  "executedSql": "SELECT id, username, email, is_admin AS isAdmin FROM users WHERE username = 'admin'",
-  "users": [
-    {
-      "id": 1,
-      "username": "admin",
-      "email": "admin@example.com",
-      "isAdmin": 1
-    }
-  ]
-}
-```
-
-### Защищённый поиск пользователей
-
-```http
-GET /search/secure?username=admin
-```
-
-Пример ответа:
-
-```json
-{
-  "mode": "secure",
-  "protection": "Parameterized query with input validation.",
-  "users": [
-    {
-      "id": 1,
-      "username": "admin",
-      "email": "admin@example.com",
-      "isAdmin": 1
-    }
-  ]
-}
-```
-
-### Журнал security events
-
-```http
-GET /security-events
-```
-
-Endpoint возвращает последние поисковые события, включая подозрительные и заблокированные запросы.
-
-## Демонстрация SQL Injection
-
-### Нормальный запрос
+Обычный запрос к намеренно уязвимому endpoint:
 
 ```bash
 curl "http://localhost:3000/search/vulnerable?username=admin"
 ```
 
-Ожидаемый результат: возвращается только пользователь `admin`.
+Проверку security-сценариев рекомендуется выполнять только против этого локального учебного приложения. Полный набор примеров находится в [`docs/manual-checks.md`](docs/manual-checks.md).
 
-### SQL Injection через OR 1=1
-
-```bash
-curl "http://localhost:3000/search/vulnerable?username=' OR 1=1 --"
-```
-
-Ожидаемый результат: уязвимый endpoint возвращает всех пользователей.
-
-### UNION-based data exposure
-
-```bash
-curl "http://localhost:3000/search/vulnerable?username=' UNION SELECT id, username, password, is_admin FROM users --"
-```
-
-Ожидаемый результат: через уязвимый endpoint можно получить значения из колонки `password`.
-
-## Защита
-
-Защищённый endpoint использует два основных механизма:
-
-| Проблема | Как исправлено |
-|---|---|
-| Конкатенация пользовательского ввода в SQL | Используется параметризованный запрос `WHERE username = ?` |
-| SQL-like payload в query parameter | Добавлена allowlist-валидация `username` |
-| Риск утечки чувствительных колонок | В ответ выбираются только публичные поля |
-| Невидимость подозрительных запросов | Добавлено in-memory логирование security events |
-
-Пример безопасного запроса:
-
-```js
-database.all(
-  'SELECT id, username, email, is_admin AS isAdmin FROM users WHERE username = ?',
-  [username]
-);
-```
-
-Попытка повторить атаку на защищённый endpoint:
-
-```bash
-curl "http://localhost:3000/search/secure?username=' OR 1=1 --"
-```
-
-Пример ответа:
-
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid username query parameter.",
-    "details": [
-      "username may contain only latin letters, numbers and underscore."
-    ]
-  }
-}
-```
-
-Подробнее: [`docs/security-model.md`](docs/security-model.md)
-
-## Ручная проверка
-
-Все команды для ручной проверки находятся в файле:
-
-```text
-docs/manual-checks.md
-```
-
-## Автотесты
-
-Запуск тестов:
+## Проверка
 
 ```bash
 npm test
-```
-
-Проверка синтаксиса основных файлов:
-
-```bash
 npm run check
 ```
 
-В тестах проверяется:
+Тесты сравнивают поведение vulnerable/secure endpoint'ов и проверяют валидацию, response filtering и security logging.
 
-- доступность `/health`;
-- нормальный поиск в уязвимом endpoint;
-- успешная SQL Injection через `OR 1=1` в уязвимом endpoint;
-- успешная UNION-based data exposure в уязвимом endpoint;
-- нормальный поиск в защищённом endpoint;
-- отсутствие поля `password` в защищённом ответе;
-- блокировка SQL Injection payload в защищённом endpoint;
-- блокировка UNION payload в защищённом endpoint;
-- логирование подозрительных запросов.
+OpenAPI: [`docs/openapi.yaml`](docs/openapi.yaml).  
+Postman: [`postman/`](postman/).
 
-## OpenAPI
+## Статус
 
-Спецификация API находится в файле:
+Проект завершён и используется как portfolio lab по **SQL Injection, secure query construction и API hardening**.
 
-```text
-docs/openapi.yaml
-```
+## Автор
 
-Её можно открыть в Swagger Editor или использовать как документацию к API.
-
-## Postman
-
-Postman-коллекция и environment находятся в папке:
-
-```text
-postman/
-```
-
-Импортировать в Postman:
-
-- `websec-sql-injection-lab.postman_collection.json`
-- `websec-sql-injection-lab.local.postman_environment.json`
-
-## CI
-
-В проекте настроен GitHub Actions workflow:
-
-```text
-.github/workflows/ci.yml
-```
-
-CI устанавливает зависимости, проверяет синтаксис и запускает автотесты.
-
-## Статус проекта
-
-Проект выполнен как учебная работа по безопасности веб-приложений и оформлен как портфолио-проект. Он показывает понимание SQL Injection, параметризованных запросов, валидации входных данных и безопасной фильтрации ответов API.
+[Николь Журбенко](https://github.com/nikamurkaa)
